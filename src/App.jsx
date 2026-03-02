@@ -11,7 +11,7 @@ import Contact from './Contact'
 import AboutUs from './AboutUs'
 import DynamicTopics from './DynamicTopics'
 import ThinkAnalyse from './ThinkAnalyse';
-import HelpPage from './HelpPage';
+import Help from './Help';
 
 function App() {
   
@@ -26,7 +26,7 @@ function App() {
     <Link to="/thinkanalyse">Think Analyse</Link> |
     <Link to="/contact">Contact</Link> |
     <Link to="/aboutus">About Us</Link> |
-    <Link to="/helppage">Help Page</Link> |
+    <Link to="/help">Help </Link> |
     </nav>
 
     <Routes>
@@ -37,7 +37,7 @@ function App() {
     </Route>
     <Route path="/contact" element={<Contact />} />
     <Route path="/aboutus" element={<AboutUs />} />
-    <Route path="/helppage" element={<HelpPage />} />
+    <Route path="/help" element={<Help />} />
     </Routes>
     </BrowserRouter>
        

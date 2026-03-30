@@ -12,6 +12,7 @@ import AboutUs from './AboutUs'
 import DynamicTopics from './DynamicTopics'
 import ThinkAnalyse from './ThinkAnalyse';
 import Help from './Help';
+import PrivacyPolicy from './PrivacyPolicy';
 
 function App() {
   
@@ -24,6 +25,7 @@ function App() {
      <Link to="/">Homepage</Link> |
      <Link to="/login">Login</Link> |
     <Link to="/thinkanalyse">Think Analyse</Link> |
+    <Link to="/privacypolicy">Privacy Policy</Link> |
     <Link to="/contact">Contact</Link> |
     <Link to="/aboutus">About Us</Link> |
     <Link to="/help">Help </Link> |
@@ -35,6 +37,7 @@ function App() {
     <Route path="/thinkanalyse" element={<ThinkAnalyse />}>
     <Route path="dynamictopics" element={<DynamicTopics />} />
     </Route>
+    <Route path="/privacypolicy" element={<PrivacyPolicy />} />
     <Route path="/contact" element={<Contact />} />
     <Route path="/aboutus" element={<AboutUs />} />
     <Route path="/help" element={<Help />} />

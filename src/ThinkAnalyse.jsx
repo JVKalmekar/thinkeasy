@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, Outlet } from 'react-router-dom'
 import { useNavigate } from 'react-router-dom'
 import DynamicTopics from './DynamicTopics'
+import TopicsUpdate from './TopicsUpdate'
 import './App.css'
 
 
@@ -12,6 +13,7 @@ function ThinkAnalyse() {
         <div>
         <nav>
           <Link to="dynamictopics">Dynamic Topics</Link> |
+          <Link to="topicsupdate">Topics Update</Link> |
           </nav>
          <Outlet />
         </div>

@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "./firebase";
 
 export default function DynamicTopics() {
   const [topics, setTopics] = useState([
@@ -51,6 +53,23 @@ export default function DynamicTopics() {
       const num = parseFloat(item.value);
       return sum + (isNaN(num) ? 0 : num);
     }, 0);
+  };
+
+  // Submit topic to database
+  const submitTopic = async () => {
+    try {
+      await addDoc(collection(db, "topics"), {
+        topics: topics,
+        revision: 0,
+        createdAt: new Date()
+      });
+      alert("Topic submitted successfully!");
+      // Reset form
+      setTopics([{ name: "", suitable: [], unsuitable: [] }]);
+    } catch (error) {
+      console.error("Error adding document: ", error);
+      alert("Error submitting topic.");
+    }
   };
 
   return (
@@ -153,6 +172,7 @@ export default function DynamicTopics() {
       ))}
 
       <button onClick={addTopic}>Add Main Topic</button>
+      <button onClick={submitTopic} style={{ marginLeft: "10px" }}>Submit Topic</button>
     </div>
   );
 }

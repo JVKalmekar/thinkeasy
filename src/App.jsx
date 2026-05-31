@@ -13,6 +13,9 @@ import DynamicTopics from './DynamicTopics'
 import ThinkAnalyse from './ThinkAnalyse';
 import Help from './Help';
 import PrivacyPolicy from './PrivacyPolicy';
+import LifeSettle from './LifeSettle';
+import TopicsUpdate from './TopicsUpdate';
+
 
 function App() {
   
@@ -29,6 +32,8 @@ function App() {
     <Link to="/contact">Contact</Link> |
     <Link to="/aboutus">About Us</Link> |
     <Link to="/help">Help </Link> |
+    <Link to="/lifesettle">Life Settle</Link> |
+    
     </nav>
 
     <Routes>
@@ -36,11 +41,13 @@ function App() {
     <Route path="/login" element={<Login />} />
     <Route path="/thinkanalyse" element={<ThinkAnalyse />}>
     <Route path="dynamictopics" element={<DynamicTopics />} />
+    <Route path="topicsupdate" element={<TopicsUpdate />} />
     </Route>
     <Route path="/privacypolicy" element={<PrivacyPolicy />} />
     <Route path="/contact" element={<Contact />} />
     <Route path="/aboutus" element={<AboutUs />} />
     <Route path="/help" element={<Help />} />
+    <Route path="lifesettle" element={<LifeSettle />} />
     </Routes>
     </BrowserRouter>
        

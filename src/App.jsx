@@ -15,7 +15,7 @@ import Help from './Help';
 import PrivacyPolicy from './PrivacyPolicy';
 import LifeSettle from './LifeSettle';
 import TopicsUpdate from './TopicsUpdate';
-
+import TaskScrutiny from './TaskScrutiny';
 
 function App() {
   
@@ -42,6 +42,7 @@ function App() {
     <Route path="/thinkanalyse" element={<ThinkAnalyse />}>
     <Route path="dynamictopics" element={<DynamicTopics />} />
     <Route path="topicsupdate" element={<TopicsUpdate />} />
+    <Route path="taskscrutiny" element={<TaskScrutiny />} />
     </Route>
     <Route path="/privacypolicy" element={<PrivacyPolicy />} />
     <Route path="/contact" element={<Contact />} />

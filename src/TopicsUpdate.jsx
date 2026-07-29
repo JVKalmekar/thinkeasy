@@ -23,6 +23,55 @@ export default function TopicsUpdate() {
   ]);
   const [revision, setRevision] = useState(0);
 
+  const normalizeProject = (project = {}, index = 0) => ({
+    projectNumber: project.projectNumber || index + 1,
+    name: project.name || "",
+    location: project.location || "",
+    description: project.description || "",
+    tasks: Array.isArray(project.tasks)
+      ? project.tasks.map((task) => ({ title: task?.title || "" }))
+      : [],
+    status: {
+      plannedDate: project.status?.plannedDate || "",
+      dueDate: project.status?.dueDate || "",
+      postponedDate: project.status?.postponedDate || "",
+      pendingDate: project.status?.pendingDate || "",
+      completedDate: project.status?.completedDate || ""
+    },
+    criteria: {
+      implementable: Array.isArray(project.criteria?.implementable)
+        ? project.criteria.implementable
+        : [],
+      nonImplementable: Array.isArray(project.criteria?.nonImplementable)
+        ? project.criteria.nonImplementable
+        : []
+    },
+    budgetAssigned: parseFloat(project.budgetAssigned) || 0
+  });
+
+  const normalizeTopic = (topic) => ({
+    ...topic,
+    postInteractions: {
+      works: Array.isArray(topic.postInteractions?.works)
+        ? topic.postInteractions.works.map((work, workIndex) => normalizeProject(work, workIndex))
+        : [],
+      budget: {
+        initialCapital: topic.postInteractions?.budget?.initialCapital || 0,
+        newCapitalAdditions: Array.isArray(topic.postInteractions?.budget?.newCapitalAdditions)
+          ? topic.postInteractions.budget.newCapitalAdditions
+          : [],
+        outgoings: topic.postInteractions?.budget?.outgoings || 0
+      },
+      experiences: Array.isArray(topic.postInteractions?.experiences)
+        ? topic.postInteractions.experiences.map((exp) => ({
+            title: exp.title || "",
+            description: exp.description || "",
+            skills: Array.isArray(exp.skills) ? exp.skills : []
+          }))
+        : []
+    }
+  });
+
   // Unhide topics - fetch all topic IDs
   const unhideTopics = async () => {
     try {
@@ -44,15 +93,7 @@ export default function TopicsUpdate() {
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
-        // Ensure postInteractions structure exists for backward compatibility
-        const topicsWithPostInteractions = data.topics.map(topic => ({
-          ...topic,
-          postInteractions: topic.postInteractions || {
-            works: [],
-            budget: { initialCapital: 0, newCapitalAdditions: [], outgoings: 0 },
-            experiences: []
-          }
-        }));
+        const topicsWithPostInteractions = data.topics.map(normalizeTopic);
         setTopics(topicsWithPostInteractions);
         setRevision(data.revision);
         setSelectedTopic(id);
@@ -126,61 +167,68 @@ export default function TopicsUpdate() {
 
   // ====== Part-2: Post-Interactions Helper Functions ======
   
-  // Works/Missions Management
-  const addWork = (topicIndex) => {
+  // Projects/Works Management
+  const addProject = (topicIndex) => {
     const updated = [...topics];
-    updated[topicIndex].postInteractions.works.push({
-      title: "",
-      description: "",
-      status: {
-        plannedDate: "",
-        dueDate: "",
-        postponedDate: "",
-        pendingDate: "",
-        completedDate: ""
-      },
-      criteria: {
-        implementable: [],
-        nonImplementable: []
-      },
-      budgetAssigned: 0
-    });
+    updated[topicIndex].postInteractions.works.push(normalizeProject({}, updated[topicIndex].postInteractions.works.length));
     setTopics(updated);
   };
 
-  const removeWork = (topicIndex, workIndex) => {
+  const removeProject = (topicIndex, projectIndex) => {
     const updated = [...topics];
-    updated[topicIndex].postInteractions.works.splice(workIndex, 1);
+    updated[topicIndex].postInteractions.works.splice(projectIndex, 1);
+    updated[topicIndex].postInteractions.works = updated[topicIndex].postInteractions.works.map((project, index) => ({
+      ...project,
+      projectNumber: index + 1
+    }));
     setTopics(updated);
   };
 
-  const updateWork = (topicIndex, workIndex, field, value) => {
+  const updateProjectField = (topicIndex, projectIndex, field, value) => {
     const updated = [...topics];
-    updated[topicIndex].postInteractions.works[workIndex][field] = value;
+    updated[topicIndex].postInteractions.works[projectIndex][field] = value;
     setTopics(updated);
   };
 
-  const updateWorkStatus = (topicIndex, workIndex, statusField, value) => {
+  const updateProjectStatus = (topicIndex, projectIndex, statusField, value) => {
     const updated = [...topics];
-    updated[topicIndex].postInteractions.works[workIndex].status[statusField] = value;
+    updated[topicIndex].postInteractions.works[projectIndex].status[statusField] = value;
     setTopics(updated);
   };
 
-  const addCriteria = (topicIndex, workIndex, criteriaType) => {
+  const addTask = (topicIndex, projectIndex) => {
     const updated = [...topics];
-    updated[topicIndex].postInteractions.works[workIndex].criteria[criteriaType].push("");
+    updated[topicIndex].postInteractions.works[projectIndex].tasks.push({ title: "" });
     setTopics(updated);
   };
 
-  const updateCriteria = (topicIndex, workIndex, criteriaType, criteriaIndex, value) => {
+  const updateTask = (topicIndex, projectIndex, taskIndex, value) => {
     const updated = [...topics];
-    updated[topicIndex].postInteractions.works[workIndex].criteria[criteriaType][criteriaIndex] = value;
+    updated[topicIndex].postInteractions.works[projectIndex].tasks[taskIndex].title = value;
     setTopics(updated);
   };
 
-  const removeCriteria = (topicIndex, workIndex, criteriaType, criteriaIndex) => {
+  const removeTask = (topicIndex, projectIndex, taskIndex) => {
     const updated = [...topics];
-    updated[topicIndex].postInteractions.works[workIndex].criteria[criteriaType].splice(criteriaIndex, 1);
+    updated[topicIndex].postInteractions.works[projectIndex].tasks.splice(taskIndex, 1);
+    setTopics(updated);
+  };
+
+  const addCriteria = (topicIndex, projectIndex, criteriaType) => {
+    const updated = [...topics];
+    updated[topicIndex].postInteractions.works[projectIndex].criteria[criteriaType].push("");
+    setTopics(updated);
+  };
+
+  const updateCriteria = (topicIndex, projectIndex, criteriaType, criteriaIndex, value) => {
+    const updated = [...topics];
+    updated[topicIndex].postInteractions.works[projectIndex].criteria[criteriaType][criteriaIndex] = value;
+    setTopics(updated);
+  };
+
+  const removeCriteria = (topicIndex, projectIndex, criteriaType, criteriaIndex) => {
+    const updated = [...topics];
+    updated[topicIndex].postInteractions.works[projectIndex].criteria[criteriaType].splice(criteriaIndex, 1);
     setTopics(updated);
   };
 
@@ -214,9 +262,9 @@ export default function TopicsUpdate() {
     setTopics(updated);
   };
 
-  const updateBudgetAssigned = (topicIndex, workIndex, value) => {
+  const updateBudgetAssigned = (topicIndex, projectIndex, value) => {
     const updated = [...topics];
-    updated[topicIndex].postInteractions.works[workIndex].budgetAssigned = parseFloat(value) || 0;
+    updated[topicIndex].postInteractions.works[projectIndex].budgetAssigned = parseFloat(value) || 0;
     setTopics(updated);
   };
 
@@ -414,12 +462,12 @@ export default function TopicsUpdate() {
               <div style={{ marginTop: "30px", borderTop: "3px solid #ff6b6b", paddingTop: "20px" }}>
                 <h3>📋 Part-2: Post-Interactions</h3>
 
-                {/* Works/Missions Section */}
+                {/* Works / Missions Section */}
                 <div style={{ marginBottom: "20px" }}>
                   <h4>🎯 Works / Missions - To Do List</h4>
-                  {topic.postInteractions.works.map((work, wIndex) => (
+                  {topic.postInteractions.works.map((project, pIndex) => (
                     <div
-                      key={wIndex}
+                      key={pIndex}
                       style={{
                         border: "1px solid #ddd",
                         padding: "15px",
@@ -427,30 +475,62 @@ export default function TopicsUpdate() {
                         backgroundColor: "#f9f9f9"
                       }}
                     >
-                      <input
-                        type="text"
-                        placeholder="Work Title"
-                        value={work.title}
-                        onChange={(e) => updateWork(tIndex, wIndex, "title", e.target.value)}
-                        style={{ width: "100%", padding: "8px", marginBottom: "10px" }}
-                      />
+                      <h5>Project-{project.projectNumber}</h5>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
+                        <input
+                          type="text"
+                          placeholder="Project Name"
+                          value={project.name}
+                          onChange={(e) => updateProjectField(tIndex, pIndex, "name", e.target.value)}
+                          style={{ padding: "8px" }}
+                        />
+                        <input
+                          type="text"
+                          placeholder="Project Location"
+                          value={project.location}
+                          onChange={(e) => updateProjectField(tIndex, pIndex, "location", e.target.value)}
+                          style={{ padding: "8px" }}
+                        />
+                      </div>
                       <textarea
-                        placeholder="Work Description"
-                        value={work.description}
-                        onChange={(e) => updateWork(tIndex, wIndex, "description", e.target.value)}
+                        placeholder="Project Description"
+                        value={project.description}
+                        onChange={(e) => updateProjectField(tIndex, pIndex, "description", e.target.value)}
                         style={{ width: "100%", padding: "8px", marginBottom: "10px", minHeight: "80px" }}
                       />
 
+                      {/* Tasks Section */}
+                      <div style={{ marginBottom: "15px", backgroundColor: "#eef7ff", padding: "10px", borderRadius: "4px" }}>
+                        <h5>📝 Tasks</h5>
+                        {project.tasks.map((task, taskIndex) => (
+                          <div key={taskIndex} style={{ display: "flex", gap: "10px", marginBottom: "10px", alignItems: "center" }}>
+                            <input
+                              type="text"
+                              placeholder={`Task ${taskIndex + 1} Title`}
+                              value={task.title}
+                              onChange={(e) => updateTask(tIndex, pIndex, taskIndex, e.target.value)}
+                              style={{ flex: 1, padding: "8px" }}
+                            />
+                            <button onClick={() => removeTask(tIndex, pIndex, taskIndex)} style={{ padding: "8px" }}>
+                              Remove Task
+                            </button>
+                          </div>
+                        ))}
+                        <button onClick={() => addTask(tIndex, pIndex)} style={{ marginTop: "5px" }}>
+                          + Add Tasks
+                        </button>
+                      </div>
+
                       {/* Status Dates */}
                       <div style={{ backgroundColor: "#f0f0f0", padding: "10px", marginBottom: "10px", borderRadius: "4px" }}>
-                        <h5>📅 Work Status Dates:</h5>
+                        <h5>📅 Project Status Dates:</h5>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
                           <div>
                             <label>Planned Date:</label>
                             <input
                               type="date"
-                              value={work.status.plannedDate}
-                              onChange={(e) => updateWorkStatus(tIndex, wIndex, "plannedDate", e.target.value)}
+                              value={project.status.plannedDate}
+                              onChange={(e) => updateProjectStatus(tIndex, pIndex, "plannedDate", e.target.value)}
                               style={{ width: "100%", padding: "5px" }}
                             />
                           </div>
@@ -458,8 +538,8 @@ export default function TopicsUpdate() {
                             <label>Due Date:</label>
                             <input
                               type="date"
-                              value={work.status.dueDate}
-                              onChange={(e) => updateWorkStatus(tIndex, wIndex, "dueDate", e.target.value)}
+                              value={project.status.dueDate}
+                              onChange={(e) => updateProjectStatus(tIndex, pIndex, "dueDate", e.target.value)}
                               style={{ width: "100%", padding: "5px" }}
                             />
                           </div>
@@ -467,8 +547,8 @@ export default function TopicsUpdate() {
                             <label>Postponed Date:</label>
                             <input
                               type="date"
-                              value={work.status.postponedDate}
-                              onChange={(e) => updateWorkStatus(tIndex, wIndex, "postponedDate", e.target.value)}
+                              value={project.status.postponedDate}
+                              onChange={(e) => updateProjectStatus(tIndex, pIndex, "postponedDate", e.target.value)}
                               style={{ width: "100%", padding: "5px" }}
                             />
                           </div>
@@ -476,8 +556,8 @@ export default function TopicsUpdate() {
                             <label>Pending Date:</label>
                             <input
                               type="date"
-                              value={work.status.pendingDate}
-                              onChange={(e) => updateWorkStatus(tIndex, wIndex, "pendingDate", e.target.value)}
+                              value={project.status.pendingDate}
+                              onChange={(e) => updateProjectStatus(tIndex, pIndex, "pendingDate", e.target.value)}
                               style={{ width: "100%", padding: "5px" }}
                             />
                           </div>
@@ -485,8 +565,8 @@ export default function TopicsUpdate() {
                             <label>Completed Date:</label>
                             <input
                               type="date"
-                              value={work.status.completedDate}
-                              onChange={(e) => updateWorkStatus(tIndex, wIndex, "completedDate", e.target.value)}
+                              value={project.status.completedDate}
+                              onChange={(e) => updateProjectStatus(tIndex, pIndex, "completedDate", e.target.value)}
                               style={{ width: "100%", padding: "5px" }}
                             />
                           </div>
@@ -496,54 +576,54 @@ export default function TopicsUpdate() {
                       {/* Criteria Section */}
                       <div style={{ backgroundColor: "#f0f0f0", padding: "10px", marginBottom: "10px", borderRadius: "4px" }}>
                         <h5>✅ Implementable Criteria:</h5>
-                        {work.criteria.implementable.map((criterion, cIndex) => (
+                        {project.criteria.implementable.map((criterion, cIndex) => (
                           <div key={cIndex} style={{ marginBottom: "8px", display: "flex", gap: "10px" }}>
                             <input
                               type="text"
                               placeholder="Criteria"
                               value={criterion}
-                              onChange={(e) => updateCriteria(tIndex, wIndex, "implementable", cIndex, e.target.value)}
+                              onChange={(e) => updateCriteria(tIndex, pIndex, "implementable", cIndex, e.target.value)}
                               style={{ flex: 1, padding: "5px" }}
                             />
-                            <button onClick={() => removeCriteria(tIndex, wIndex, "implementable", cIndex)}>Remove</button>
+                            <button onClick={() => removeCriteria(tIndex, pIndex, "implementable", cIndex)}>Remove</button>
                           </div>
                         ))}
-                        <button onClick={() => addCriteria(tIndex, wIndex, "implementable")}>Add Criteria</button>
+                        <button onClick={() => addCriteria(tIndex, pIndex, "implementable")}>Add Criteria</button>
 
                         <h5 style={{ marginTop: "15px" }}>❌ Non-Implementable Criteria:</h5>
-                        {work.criteria.nonImplementable.map((criterion, cIndex) => (
+                        {project.criteria.nonImplementable.map((criterion, cIndex) => (
                           <div key={cIndex} style={{ marginBottom: "8px", display: "flex", gap: "10px" }}>
                             <input
                               type="text"
                               placeholder="Criteria"
                               value={criterion}
-                              onChange={(e) => updateCriteria(tIndex, wIndex, "nonImplementable", cIndex, e.target.value)}
+                              onChange={(e) => updateCriteria(tIndex, pIndex, "nonImplementable", cIndex, e.target.value)}
                               style={{ flex: 1, padding: "5px" }}
                             />
-                            <button onClick={() => removeCriteria(tIndex, wIndex, "nonImplementable", cIndex)}>Remove</button>
+                            <button onClick={() => removeCriteria(tIndex, pIndex, "nonImplementable", cIndex)}>Remove</button>
                           </div>
                         ))}
-                        <button onClick={() => addCriteria(tIndex, wIndex, "nonImplementable")}>Add Criteria</button>
+                        <button onClick={() => addCriteria(tIndex, pIndex, "nonImplementable")}>Add Criteria</button>
                       </div>
 
                       {/* Budget Assigned */}
                       <div>
-                        <label>💰 Budget Assigned to this Work:</label>
+                        <label>💰 Budget Assigned to this Project:</label>
                         <input
                           type="number"
-                          value={work.budgetAssigned}
-                          onChange={(e) => updateBudgetAssigned(tIndex, wIndex, e.target.value)}
+                          value={project.budgetAssigned}
+                          onChange={(e) => updateBudgetAssigned(tIndex, pIndex, e.target.value)}
                           style={{ width: "100%", padding: "8px", marginBottom: "10px" }}
                           placeholder="0"
                         />
                       </div>
 
-                      <button onClick={() => removeWork(tIndex, wIndex)} style={{ backgroundColor: "#ff6b6b", color: "white", padding: "8px 15px" }}>
-                        Remove Work
+                      <button onClick={() => removeProject(tIndex, pIndex)} style={{ backgroundColor: "#ff6b6b", color: "white", padding: "8px 15px" }}>
+                        Remove Project
                       </button>
                     </div>
                   ))}
-                  <button onClick={() => addWork(tIndex)} style={{ marginBottom: "20px" }}>
+                  <button onClick={() => addProject(tIndex)} style={{ marginBottom: "20px" }}>
                     + Add Work / Mission
                   </button>
                 </div>

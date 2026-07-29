@@ -14,6 +14,7 @@ function ThinkAnalyse() {
         <nav>
           <Link to="dynamictopics">Dynamic Topics</Link> |
           <Link to="topicsupdate">Topics Update</Link> |
+          <Link to="taskscrutiny">Task Scrutiny</Link>
           </nav>
          <Outlet />
         </div>
